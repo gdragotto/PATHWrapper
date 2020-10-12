@@ -1,3 +1,5 @@
+#(c) Gabriele Dragotto - 2020
+# www.dragotto.net
 cmake_minimum_required(VERSION 3.14)
 project(
   PATHWrapper
