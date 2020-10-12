@@ -125,6 +125,67 @@ static CB_FUNC(void) messageCB(void *data, int mode, char *buf) {
 } /* messageCB */
 }
 
+static void sort(int rows, int cols, int elements, int *row, int *col, double *data) {
+  double *m_data;
+  int *   m_start;
+  int *   m_len;
+  int *   m_row;
+
+  int i = 0, cs = 0, ce = 0;
+
+  m_start = new int[cols + 1];
+  m_len   = new int[cols + 1];
+  m_row   = new int[elements + 1];
+  m_data  = new double[elements + 1];
+
+  for (i = 0; i < cols; i++) {
+	 m_len[i] = 0;
+  }
+
+  for (i = 0; i < elements; i++) {
+	 if ((col[i] < 1) || (col[i] > cols)) {
+		throw("column incorrect.\n");
+	 }
+
+	 if ((row[i] < 1) || (row[i] > rows)) {
+		throw("column incorrect.\n");
+	 }
+
+	 m_len[col[i] - 1]++;
+  }
+
+  m_start[0] = 0;
+  for (i = 1; i < cols; i++) {
+	 m_start[i]   = m_start[i - 1] + m_len[i - 1];
+	 m_len[i - 1] = 0;
+  }
+  m_len[i - 1] = 0;
+
+  for (i = 0; i < elements; i++) {
+	 cs         = col[i] - 1;
+	 ce         = m_start[cs] + m_len[cs];
+	 m_row[ce]  = row[i];
+	 m_data[ce] = data[i];
+	 m_len[cs]++;
+  }
+
+  elements = 0;
+  for (i = 0; i < cols; i++) {
+	 cs = m_start[i];
+	 ce = cs + m_len[i];
+
+	 while (cs < ce) {
+		row[elements]  = m_row[cs];
+		col[elements]  = i + 1;
+		data[elements] = m_data[cs];
+		elements++;
+		cs++;
+	 }
+  }
+
+  return;
+}
+
 static Output_Interface outputInterface = {NULL, messageCB, NULL};
 
 
@@ -208,6 +269,8 @@ int PathLCP(int    n,
   problem.m_len   = new int[n];
   problem.m_row   = new int[m_nnz + 1];
   problem.m_data  = new double[m_nnz + 1];
+
+  sort(n, n, m_nnz, m_i, m_j, m_ij);
 
   int m_index = 0, m_count = 0;
   for (i = 0; i < n; i++) {
